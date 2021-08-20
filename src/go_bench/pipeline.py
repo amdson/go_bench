@@ -1,0 +1,62 @@
+import json
+import logging
+import os
+import pickle
+
+import pandas as pd
+from go_bench.processing import (enforce_count, enforce_threshold,
+                                       filter_dict, get_counts_dict, get_namespace_terms,
+                                       invert_protein_annotation_dict,
+                                       propogate_annotations)
+from go_bench.load_tools import load_protein_annotations
+from go_bench.utils import namespaces, experimental_codes
+
+
+def construct_tsv(path, prot_dict, prot_ids, term_set):
+    print(path, len(prot_dict), len(prot_ids), len(term_set))
+    columns = ["Uniprot ID", "GO Associations"]
+    with open(path, mode='w') as f:
+        f.write("\t".join(columns) + "\n")
+        for prot_id in prot_ids:
+            if(prot_id in prot_dict):
+                terms = term_set.intersection(prot_dict[prot_id])
+                if(len(terms) > 0):
+                    f.write("{}\t{}\n".format(prot_id, ", ".join(terms)))
+
+def pipeline(goa_path, split_path, save_dir, godag, codes=experimental_codes, namespaces=namespaces, 
+                propogate_terms=True, min_date=None, max_date=None,
+                filter_type=('min_samples', 100)):
+    prot_dict = load_protein_annotations(goa_path, codes, min_date=min_date, max_date=max_date) 
+    prot_dict = filter_dict(prot_dict, godag)   
+    #Read in terms
+    term_list = [term for term in godag]
+    #Count occurences of each GO term
+    if(propogate_terms):
+        propogate_annotations(prot_dict, term_list, godag) 
+    
+        annotation_dict = invert_protein_annotation_dict(prot_dict) #Maps GO IDs to lists of protein IDs. 
+    annotation_counts_dict = get_counts_dict(annotation_dict)
+    
+    #Filter terms for each namespace
+    filter_type, f_k = filter_type
+    if(filter_type == "min_samples"):
+        filter_method = lambda filter_set: enforce_threshold(annotation_counts_dict, filter_set, f_k)
+    elif(filter_type == "top_k"):
+        filter_method = lambda filter_set: enforce_count(annotation_counts_dict, filter_set, f_k)
+    for namespace in namespaces:
+        filter_set = get_namespace_terms(godag, namespace)
+        namespace_term_list = filter_method(filter_set)
+        print("filtering namespace:", namespace)
+        print("namespace_term_list length", len(namespace_term_list))
+        
+        json_path = f"{save_dir}/{namespace}_terms.json"
+        with open(json_path, "w") as f:
+            json.dump(namespace_term_list, f)
+        for prot_set_type in ("training", "validation", "testing"):
+            with open(f"{split_path}/{prot_set_type}_ids.txt", "r") as f:
+                prot_ids = set([x[:-1] for x in f.readlines()])
+            print("prot_ids:", len(prot_ids))
+            print("saving results")
+            path = f"{save_dir}/{prot_set_type}_{namespace}_annotations.tsv"
+            print(f"saving to {path}")
+            construct_tsv(path, prot_dict, prot_ids, set(namespace_term_list))
