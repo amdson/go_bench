@@ -43,6 +43,7 @@ def pipeline(goa_path, split_path, save_dir, godag, codes=experimental_codes, na
         filter_method = lambda filter_set: enforce_threshold(annotation_counts_dict, filter_set, f_k)
     elif(filter_type == "top_k"):
         filter_method = lambda filter_set: enforce_count(annotation_counts_dict, filter_set, f_k)
+        
     for namespace in namespaces:
         filter_set = get_namespace_terms(godag, namespace)
         namespace_term_list = filter_method(filter_set)
