@@ -17,22 +17,11 @@ def to_data_num(year, month, day):
 
 #The annotations dict maps protein ids to a list of (GO annotation, evidence_code) tuples. 
 
-def read_table_annotations(tab_path, protein_annotations_dict, code):
-    for df in pd.read_table(tab_path, sep='\t', chunksize=4000, 
-                usecols=["Entry", "Gene ontology IDs"], keep_default_na=False, dtype=str):
-        for row in df.itertuples():
-            name = row[1]
-            if(len(name) <= 2):
-                print(name)
-            annotations = row[2].split("; ")
-            annotations = [(annotation, code) for annotation in annotations]
-            if(row[1] in protein_annotations_dict):
-                protein_annotations_dict[row[1]].extend(annotations)
-            else:
-                protein_annotations_dict[row[1]] = list(annotations)
-
-
-#Load all protein annotations based on select annotation codes, from a specific time-range. 
+neg_qualifiers = {'NOT|colocalizes_with', 'NOT|acts_upstream_of_or_within', 
+                  'NOT|acts_upstream_of', 'NOT|acts_upstream_of_or_within_negative_effect', 
+                  'NOT|enables', 'NOT|part_of', 'NOT|is_active_in', 'NOT|located_in', 
+                  'NOT|contributes_to', 'NOT|involved_in', 'acts_upstream_of_or_within_negative_effect', 
+                  'acts_upstream_of_negative_effect'}
 def load_protein_annotations(goa_path, annotation_codes, min_date=None, max_date=None):
     annotation_codes = set(annotation_codes)
     annot_dict = defaultdict(set)
@@ -40,19 +29,19 @@ def load_protein_annotations(goa_path, annotation_codes, min_date=None, max_date
                           sep='\t',
                           comment='!',
                           names=GAF20FIELDS,
-                          chunksize=int(1e6))    
+                          chunksize=int(1e6)) 
+    
     if(min_date is None and max_date is None):
         for zdf in df_iter:
             # For now, remove all with a qualifier
-            zdf = zdf[zdf.Evidence.isin(annotation_codes) & zdf.Qualifier.isnull()]
+            zdf = zdf[zdf.Evidence.isin(annotation_codes) & ~zdf.Qualifier.isin(neg_qualifiers)]
             for tup in zdf.itertuples():
                 annot_dict[tup[2]].add(tup[5])
     else:
         for zdf in df_iter:
             # For now, remove all with a qualifier
             dates = zdf.Date.astype(int)
-            
-            zdf = zdf[zdf.Evidence.isin(annotation_codes) & zdf.Qualifier.isnull() & dates.ge(min_date) & dates.le(max_date)]
+            zdf = zdf[zdf.Evidence.isin(annotation_codes) & ~zdf.Qualifier.isin(neg_qualifiers) & dates.ge(min_date) & dates.le(max_date)]
             for tup in zdf.itertuples():
                 annot_dict[tup[2]].add(tup[5])
     return annot_dict
