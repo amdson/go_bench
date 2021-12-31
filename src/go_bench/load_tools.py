@@ -1,9 +1,13 @@
 import os
 from collections import defaultdict
+import gzip
 
 import numpy as np
 import pandas as pd
 from scipy.sparse import csr_matrix, dok_matrix, lil_matrix
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
 
 #from Bio.UniProt.GOA import GAF20FIELDS
 GAF20FIELDS = ['DB', 'DB_Object_ID', 'DB_Object_Symbol', 
@@ -46,6 +50,60 @@ def load_protein_annotations(goa_path, annotation_codes, min_date=None, max_date
                 annot_dict[tup[2]].add(tup[5])
     return annot_dict
 
+#loads proteins sequences from a tab or fasta file and filters by a whitelist. Returns sequences and 
+#"prot_row_mappings" giving the entry in sequences that corresponds with each protein id. 
+def load_protein_sequences(path, prot_whitelist=None):
+    prot_whitelist = set(prot_whitelist)
+
+    sequences = []
+    prot_ids = []
+    if(path[-3:] == "tab" or path[-6:] == "tab.gz"):
+        
+        df_iter = pd.read_csv(path, dtype=str,
+                                sep='\t',
+                                header=0,
+                                chunksize=int(1e5)) 
+        print("Loading sequences")
+        count = 0
+        for df in df_iter:
+            print(f"{count*1e5} rows read")
+            if(prot_whitelist):
+                df = df[df["Entry"].isin(prot_whitelist)]
+            sequences.extend([s.lower() for s in df["Sequence"]])
+            prot_ids.extend(df["Entry"])
+            count += 1
+    elif(path[-8:] == "fasta.gz"):
+        with gzip.open(path, 'rt') as fp:
+            seqs = SeqIO.parse(fp, 'fasta')
+            count = 0
+            for rec in seqs:
+                seq_id = rec.id
+                if('|' in seq_id):
+                    seq_id = rec.id.split('|')[1]
+                seq = rec.seq
+                if(seq_id in prot_whitelist):
+                    sequences.append(str(seq.lower()))
+                    prot_ids.append(seq_id)
+                if(count % 100000 == 0):
+                    print(f"{count} proteins processed")
+                count += 1
+    elif(path[-5:] == "fasta"):
+        with open(path, 'r') as fp:
+            seqs = SeqIO.parse(fp, 'fasta')
+            count = 0
+            for rec in seqs:
+                seq_id = rec.id
+                if('|' in seq_id):
+                    seq_id = rec.id.split('|')[1]
+                seq = rec.seq
+                if(prot_whitelist is None or seq_id in prot_whitelist):
+                    sequences.append(str(seq.lower()))
+                    prot_ids.append(seq_id)
+                if(count % 10000 == 0):
+                    print(f"{count} proteins processed")
+                count += 1
+    return sequences, prot_ids
+
 #Data management methods and classes
 def load_GO_tsv_file(path):
     prot_dict = {}
@@ -74,6 +132,10 @@ def convert_to_sparse_matrix(protein_annotation_dict, term_list, prot_id_list):
     labels = labels.tocsr()
     return labels
 
+def load_tsv_as_sparse(path):
+    annotation_dict = load_GO_tsv_file(path)
+
+
 def read_sparse(fn, prot_rows, GO_cols):
     prm = {prot:i for i, prot in enumerate(prot_rows)}
     tcm = {term:i for i, term in enumerate(GO_cols)}
@@ -83,3 +145,13 @@ def read_sparse(fn, prot_rows, GO_cols):
         if(prot in prm and go_id in tcm):
             sparse_probs[prm[prot], tcm[go_id]] = prob
     return csr_matrix(sparse_probs)
+
+def write_sparse(fn, preds, prot_rows, GO_cols, go, min_certainty):
+    with open(fn, mode='w') as f:
+        f.write("g,t,s\n")
+        for row, col in zip(*preds.nonzero()):
+            prot_id = prot_rows[row]
+            go_id = GO_cols[col]
+            val = preds[row, col]
+            if(val > min_certainty and go_id in go):
+                f.write(f"{prot_id},{go_id},{val}\n")

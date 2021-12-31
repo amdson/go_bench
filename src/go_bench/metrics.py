@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.sparse import csc_matrix, csr_matrix, dok_matrix, hstack, vstack
-from sklearn.metrics import (multilabel_confusion_matrix,
-                             precision_recall_fscore_support)
+from sklearn.metrics import multilabel_confusion_matrix, precision_recall_fscore_support
 
 
 def s_metric(testing_matrix, prediction_matrix, test_ia):

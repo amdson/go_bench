@@ -11,7 +11,6 @@ from go_bench.processing import (enforce_count, enforce_threshold,
 from go_bench.load_tools import load_protein_annotations
 from go_bench.utils import namespaces, experimental_codes
 
-
 def construct_tsv(path, prot_dict, prot_ids, term_set):
     print(path, len(prot_dict), len(prot_ids), len(term_set))
     columns = ["Uniprot ID", "GO Associations"]
@@ -31,7 +30,7 @@ def pipeline(goa_path, split_path, save_dir, godag, codes=experimental_codes, na
     prot_dict = load_protein_annotations(goa_path, codes, min_date=min_date, max_date=max_date) 
     print("initial len", sum(len(x) for x in prot_dict.values()))
     print("filtering annotations to godag")
-    prot_dict = filter_dict(prot_dict, godag)   
+    prot_dict = filter_dict(prot_dict, godag)
     print("filtered len", sum(len(x) for x in prot_dict.values()))
     #Read in terms
     term_list = [term for term in godag]
