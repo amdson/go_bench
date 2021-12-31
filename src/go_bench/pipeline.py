@@ -49,19 +49,22 @@ def pipeline(goa_path, split_path, save_dir, godag, codes=experimental_codes, na
         filter_method = lambda filter_set: enforce_threshold(annotation_counts_dict, filter_set, f_k)
     elif(filter_type == "top_k"):
         filter_method = lambda filter_set: enforce_count(annotation_counts_dict, filter_set, f_k)
-<<<<<<< HEAD
-        
-=======
-                                    
+
+    analysis_content = {}
     print("generating datasets")
->>>>>>> 928906b7e11d4d280618543cb17f39d73c1db00d
     for namespace in namespaces:
         namespace_terms = get_namespace_terms(godag, namespace)
+
         print(f"{len(namespace_terms)} terms in {namespace}")
         print("filtering namespace:", namespace)
 
         filtered_list = filter_method(namespace_terms)
         print("filtered_list length", len(filtered_list))
+
+        #Term counts for return        
+        namespace_term_counts = [annotation_counts_dict[term] for term in filtered_list]
+        namespace_df = pd.DataFrame(list(zip(filtered_list, namespace_term_counts)), columns=["GO_term", "count"])
+        analysis_content[namespace] = namespace_df
         
         json_path = f"{save_dir}/{namespace}_terms.json"
         with open(json_path, "w") as f:
@@ -83,3 +86,5 @@ def pipeline(goa_path, split_path, save_dir, godag, codes=experimental_codes, na
             path = f"{save_dir}/{prot_set_type}_{namespace}_annotations.tsv"
             print(f"saving to {path}")
             construct_tsv(path, prot_dict, prot_ids, set(write_list))
+    print(analysis_content)
+    return analysis_content
