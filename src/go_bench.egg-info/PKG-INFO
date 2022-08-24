@@ -5,7 +5,7 @@ Summary: Package for running GO pipeline
 Home-page: https://github.com/amdson/GO_pipeline
 Author: Andrew Dickson
 Author-email: amdickson@berkeley.edu
-License: UNKNOWN
+License: MIT
 Project-URL: Bug Tracker, https://github.com/pypa/sampleproject/issues
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
