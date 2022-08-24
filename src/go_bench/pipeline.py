@@ -86,5 +86,4 @@ def pipeline(goa_path, split_path, save_dir, godag, codes=experimental_codes, na
             path = f"{save_dir}/{prot_set_type}_{namespace}_annotations.tsv"
             print(f"saving to {path}")
             construct_tsv(path, prot_dict, prot_ids, set(write_list))
-    print(analysis_content)
     return analysis_content

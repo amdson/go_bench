@@ -42,6 +42,11 @@ def load_protein_annotations(goa_path, annotation_codes, min_date=None, max_date
             for tup in zdf.itertuples():
                 annot_dict[tup[2]].add(tup[5])
     else:
+        if(min_date is None):
+            min_date = 0
+        if(max_date is None):
+            max_date = 1e10
+            
         for zdf in df_iter:
             # For now, remove all with a qualifier
             dates = zdf.Date.astype(int)
@@ -126,9 +131,10 @@ def convert_to_sparse_matrix(protein_annotation_dict, term_list, prot_id_list):
     labels = lil_matrix((len(prot_id_list), len(term_list)), dtype=np.int8)
 
     for place, prot_id in enumerate(prot_id_list):
-        for go_id in protein_annotation_dict[prot_id]:
-            if(go_id in term_col_mappings):
-                labels[place, term_col_mappings[go_id]] = 1
+        if(prot_id in protein_annotation_dict):
+            for go_id in protein_annotation_dict[prot_id]:
+                if(go_id in term_col_mappings):
+                    labels[place, term_col_mappings[go_id]] = 1
     labels = labels.tocsr()
     return labels
 
