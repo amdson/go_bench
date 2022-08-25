@@ -1,0 +1,22 @@
+Metadata-Version: 2.1
+Name: go-bench
+Version: 0.0.1
+Summary: Package for running GO pipeline
+Home-page: https://github.com/amdson/GO_pipeline
+Author: Andrew Dickson
+Author-email: amdickson@berkeley.edu
+License: MIT
+Project-URL: Bug Tracker, https://github.com/pypa/sampleproject/issues
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: Unix
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+# GO Benchmarking
+This is a simple package for generating Gene Ontology datasets from the SwissProt and GOA databases. It contains files for downloading and processing all data to generate training, validation, and testing sets. 
+
+
+

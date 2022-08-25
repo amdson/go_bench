@@ -13,6 +13,9 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/amdson/GO_pipeline",
     packages=["go_bench"],
+    install_requires=[
+          'pandas', 'biopython', 'scipy', 'scikit-learn', 'numpy', 'goatools'
+      ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
