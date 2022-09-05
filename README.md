@@ -9,6 +9,9 @@ go_bench can be installed from git with `pip install git+https://github.com/amds
 # Data
 Most go_bench functions parse or manipulate gene ontology data. Raw data can be downloaded from SwissProt, the GOA database, and the Gene Ontology, with links for all requirements included in the go_bench_usage.ipynb notebook. Reproducing the datasets from [gobench.org](gobench.org) requires an additional set of train/validation/test splits included in the data_splits directory. 
 
+# Usage
+The full process of generating a go_bench dataset from scratch is included in go_bench_usage.ipynb. Examples of parsing go_bench datasets and processing them for machine learning are included in https://github.com/amdson/GO_Bench_Sample, or alternatively, our colab notebook: https://colab.research.google.com/drive/1af4WHuNXsn4O6L9H1UvVNq8-2qdBCIGP?usp=sharing. 
+
 # Contact
 Please send questions or suggestions to amdickson (at) berkeley.edu. Also see our lab website at https://biomechanics.berkeley.edu/. 
 
