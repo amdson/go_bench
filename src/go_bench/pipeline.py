@@ -26,6 +26,23 @@ set_types = ("training", "validation", "testing")
 def pipeline(goa_path, split_path, save_dir, godag, codes=experimental_codes, namespaces=namespaces, set_types=set_types,
                 propogate_terms=True, min_date=None, max_date=None,
                 filter_type=('min_samples', 100), filter_testing=False):
+    """
+    Inputs:
+        goa_path: Path to a GOA formatted tsv file. 
+        split_path: Path to a directory containing training_ids.txt, validation_ids.txt, and testing_ids.txt. 
+        Each file should contain a newline separated list of UniProt protein identifiers representing those IDs allowed in
+        each portion of the train test split. 
+        save_dir: Path to the directory where results should be stored. 
+        godag: A goatools.obo_parser.GODag object, loaded with prefered version of the gene ontology. Example link in ipynb. 
+        experimental_codes: A set of the ontology evidence quality identifiers which should be allowed into the model. 
+        namespaces: List of namespaces that should be generated in output dataset. 
+        Any set of ("molecular_function", "biological_process", "cellular_component") is valid. 
+        set_types: List of set types to be included in output. Any set of ("training", "validation", "testing") is valid. 
+        propogate_terms: Control whether protein gene ontology term annotations are augmented by inluding ancestors in the 
+        gene ontology tree. 
+        min_date: Min date of annotations to include from GOA file. Date must be formatted by to_data_num from load_tools.py. 
+        max_date: Max date of annotations to include from GOA file. 
+    """
     print("loading annotations")
     prot_dict = load_protein_annotations(goa_path, codes, min_date=min_date, max_date=max_date) 
     print("initial len", sum(len(x) for x in prot_dict.values()))

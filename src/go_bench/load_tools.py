@@ -138,10 +138,6 @@ def convert_to_sparse_matrix(protein_annotation_dict, term_list, prot_id_list):
     labels = labels.tocsr()
     return labels
 
-def load_tsv_as_sparse(path):
-    annotation_dict = load_GO_tsv_file(path)
-
-
 def read_sparse(fn, prot_rows, GO_cols):
     prm = {prot:i for i, prot in enumerate(prot_rows)}
     tcm = {term:i for i, term in enumerate(GO_cols)}
