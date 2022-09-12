@@ -59,7 +59,6 @@ def build_random_cluster_split(cluster_list, train_fraction=0.9):
     return training_set, testing_set
 
 
-
 clusters = load_clusters("../data/uniref-reviewed+identity_0.5.tab", set(prot_dict.keys()))
 
 
